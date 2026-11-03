@@ -1,0 +1,14 @@
+// Extracted from vehicle_6dof.emx by tools/extract_20sim_code.py
+// Type:    OneJunction
+// Library: Bond Graph\OneJunction.emx
+// Used by: Differential/OneJunction, WHEEL_BACK_L/OneJunction1, WHEEL_BACK_R/OneJunction1, WHEEL_FRONT_L/OneJunction1, WHEEL_FRONT_R/OneJunction1
+// Ports:
+//   power knot duplicatable none p [1]
+//   signal knot out flow [1]
+//   restrictions
+//   causality constraint one_out p
+
+equations
+	sum (direct (p.e)) = 0;
+	equal (collect (p.f));
+	flow = first (p.f);

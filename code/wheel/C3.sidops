@@ -1,0 +1,15 @@
+// Extracted from vehicle_6dof.emx by tools/extract_20sim_code.py
+// Type:    C
+// Library: Bond Graph\C.emx
+// Used by: WHEEL_BACK_L/C3, WHEEL_BACK_R/C3, WHEEL_FRONT_L/C3, WHEEL_FRONT_R/C3
+// Ports:
+//   power in p
+//   signal out state
+//   restrictions
+//   causality preferred out p
+
+parameters
+	real global stiffness_tire_z;
+equations
+	state = int(p.f);
+	p.e = state * stiffness_tire_z;

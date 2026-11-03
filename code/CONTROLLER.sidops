@@ -1,0 +1,64 @@
+// Extracted from vehicle_6dof.emx by tools/extract_20sim_code.py
+// Type:    Submodel-Equation
+// Library: Template\Submodel-Equation.emx
+// Used by: CONTROLLER
+// Ports:
+//   signal in X
+//   signal out delta_req
+//   signal in psi
+//   signal in Y
+
+parameters
+    // Parametri del Controller
+    real Ld = 5 {m};         // Distanza di Lookahead fissa
+    real L = 2.5 {m};          // Passo dell'auto (Wheelbase = a + b del tuo modello)
+    
+    // Parametri della Traiettoria (Cambio corsia dolce)
+    real Y_amp = 5.0 {m};      // Di quanti metri ci spostiamo lateralmente
+    real X_start = 20.0 {m};   // A che coordinata X inizia la manovra
+    real k_smooth = 0.6;       // Più è basso, più la sterzata è dolce
+
+variables
+    // Ingressi dal Car_Body
+//    real in X; 
+//    real in Y; 
+//    real in psi;
+    
+    // Uscita verso il Car_Body (che hai già rinominato delta_in)
+//    real out delta_req;
+    
+    // Variabili interne
+    real X_target, Y_target;
+    real dx, dy;
+    real y_local;              // Errore laterale nel sistema di riferimento vettura
+    real curvature;
+
+equations
+    // PUNTO DI LOOKAHEAD
+    // Proiettiamo in avanti di Ld lungo la direzione attuale
+    X_target = X + Ld * cos(psi);
+
+    // TRAIETTORIA MATEMATICA (Cambio di corsia)
+    // La funzione tanh passa da -1 a 1. 
+    // Riscalata, fa passare Y da 0 a Y_amp in modo smooth.
+    Y_target = Y_amp * 0.5 * (1 + tanh(k_smooth * (X_target - X_start)));
+
+    // seno
+    // Y_target = Y_amp * sin(0.5 * X_target);
+
+    //VETTORE DI ERRORE GLOBALE
+    dx = X_target - X;
+    dy = Y_target - Y;
+
+    // TRASFORMAZIONE NEL LOCAL FRAME
+    // Ruotiamo il vettore errore usando l'angolo di imbardata (psi).
+    // A noi interessa solo l'errore laterale "visto" dal muso dell'auto.
+    y_local = -dx * sin(psi) + dy * cos(psi);
+
+    // GEOMETRIA PURE PURSUIT
+    // Calcolo della curvatura necessaria per beccare il bersaglio
+    curvature = (2.0 * y_local) / (Ld * Ld);
+    
+    // Modello cinematico per l'angolo di sterzo richiesto alle ruote
+    delta_req = arctan(curvature * L);
+	// delta_req = 0;

@@ -1,0 +1,17 @@
+// Extracted from vehicle_6dof.emx by tools/extract_20sim_code.py
+// Type:    ZeroJunction
+// Library: Bond Graph\ZeroJunction.emx
+// Used by: WHEEL_BACK_L/ZeroJunction4, WHEEL_BACK_R/ZeroJunction4, WHEEL_FRONT_L/ZeroJunction4, WHEEL_FRONT_R/ZeroJunction4
+// Ports:
+//   power knot duplicatable none p [1]
+//   signal knot out effort [1]
+//   restrictions
+//   causality constraint one_in p
+
+equations
+	sum (direct (p.f)) = 0;
+	equal (collect (p.e));
+	effort = first (p.e);
+
+//output -> forza verticale della sospensione Fz, combinazione di forza molla e ammortizzatore
+//input -> forza verticale del punto di attacco della sospensione sul telaio

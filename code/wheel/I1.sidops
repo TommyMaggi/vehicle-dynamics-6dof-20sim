@@ -1,0 +1,17 @@
+// Extracted from vehicle_6dof.emx by tools/extract_20sim_code.py
+// Type:    I
+// Library: Bond Graph\I.emx
+// Used by: WHEEL_BACK_L/I1, WHEEL_BACK_R/I1, WHEEL_FRONT_L/I1, WHEEL_FRONT_R/I1
+// Ports:
+//   power in p
+//   signal out state
+//   restrictions
+//   causality preferred in p
+
+parameters
+	real global mass_wheel;
+equations
+    state = int(p.e);
+    p.f = state / mass_wheel;
+
+//velocità di rotazione longitudinale del centro della ruota dove l'inerzia rappresenta la massa della ruota

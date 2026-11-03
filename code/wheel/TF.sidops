@@ -1,0 +1,17 @@
+// Extracted from vehicle_6dof.emx by tools/extract_20sim_code.py
+// Type:    TF
+// Library: Bond Graph\TF.emx
+// Used by: WHEEL_BACK_L/TF, WHEEL_BACK_R/TF, WHEEL_FRONT_L/TF, WHEEL_FRONT_R/TF
+// Ports:
+//   power in p1
+//   power out p2
+//   restrictions
+//   causality constraint not_equal p1 p2
+
+parameters
+	real global radius_wheel;
+equations
+	p1.e = radius_wheel * p2.e;
+	p2.f = radius_wheel * p1.f;
+	
+//converte da rotazione a traslazione tramite il raggio della ruota

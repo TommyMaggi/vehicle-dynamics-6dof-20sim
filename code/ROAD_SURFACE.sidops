@@ -1,0 +1,61 @@
+// Extracted from vehicle_6dof.emx by tools/extract_20sim_code.py
+// Type:    Constant
+// Library: Signal\Sources\Constant.emx
+// Used by: ROAD_SURFACE
+// Ports:
+//   signal in in_X_FL
+//   signal in in_X_FR
+//   signal in in_X_BL
+//   signal in in_X_BR
+//   signal out z_road_FL
+//   signal out z_road_FR
+//   signal out z_road_BL
+//   signal out z_road_BR
+
+parameters
+    real start_bump = 5.0;      // Coordinata X dove inizia il dosso [m]
+    real bump_length = 1.5;      // Lunghezza del dosso [m]
+    real bump_height = 0.15;     // Altezza del dosso (8 cm) [m]
+
+variables
+    // Variabili interne per calcolare l'altezza prima di applicare la derivata
+    real z_pos_FL, z_pos_FR, z_pos_BL, z_pos_BR;
+
+equations
+
+    // Calcolo Posizione Z (Altezza del dosso spaziale)
+    
+    // Ruota Anteriore Sinistra (FL)
+    if (in_X_FL >= start_bump) and (in_X_FL <= start_bump + bump_length) then
+        z_pos_FL = bump_height * sin(pi * (in_X_FL - start_bump) / bump_length);
+    else
+        z_pos_FL = 0.0;
+    end;
+
+    // Ruota Anteriore Destra (FR)
+    if (in_X_FR >= start_bump) and (in_X_FR <= start_bump + bump_length) then
+        z_pos_FR = bump_height * sin(pi * (in_X_FR - start_bump) / bump_length);
+    else
+        z_pos_FR = 0.0;
+    end;
+
+    // Ruota Posteriore Sinistra (BL)
+    if (in_X_BL >= start_bump) and (in_X_BL <= start_bump + bump_length) then
+        z_pos_BL = bump_height * sin(pi * (in_X_BL - start_bump) / bump_length);
+    else
+        z_pos_BL = 0.0;
+    end;
+
+    // Ruota Posteriore Destra (BR)
+    if (in_X_BR >= start_bump) and (in_X_BR <= start_bump + bump_length) then
+        z_pos_BR = bump_height * sin(pi * (in_X_BR - start_bump) / bump_length);
+    else
+        z_pos_BR = 0.0;
+    end;
+
+    // Derivazione nel tempo (Output verso i blocchi ruota)
+    // Converte l'altezza Z in velocità (Flusso) per alimentare correttamente le MSf
+    z_road_FL = ddt(z_pos_FL);
+    z_road_FR = ddt(z_pos_FR);
+    z_road_BL = ddt(z_pos_BL);
+    z_road_BR = ddt(z_pos_BR);

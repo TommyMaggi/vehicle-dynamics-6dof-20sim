@@ -1,0 +1,33 @@
+// Extracted from vehicle_6dof.emx by tools/extract_20sim_code.py
+// Type:    SignalGenerator-Ramp
+// Library: Signal\Sources\SignalGenerator-Ramp.emx
+// Used by: TORQUE_PROFILE
+// Ports:
+//   signal out output
+
+parameters
+	
+    real max_torque = 180.0; // [Nm] Coppia necessaria per raggiungere ~30 km/h
+    real t1 = 1.0 {s};       // Il pilota inizia a premere l'acceleratore
+    real t2 = 2.0 {s};       // Acceleratore premuto al massimo (180 Nm)
+    real t3 = 5.0 {s};       // Il pilota inizia a togliere il piede (velocità raggiunta)
+    real t4 = 6.0 {s};       // Piede tolto del tutto, coppia a zero (inizio crociera)
+
+variables
+    real k_up;
+    real k_down;
+    boolean hidden c1, c2, c3, c4;
+
+equations
+    // Eventi per forzare il solver BDF a non saltare i punti di flesso
+    c1 = timeevent(t1);
+    c2 = timeevent(t2);
+    c3 = timeevent(t3);
+    c4 = timeevent(t4);
+
+    // Calcolo delle pendenze di accelerazione e decelerazione
+    k_up = max_torque / (t2 - t1);
+    k_down = max_torque / (t4 - t3);
+
+    // Profilo a trapezio puramente matematico: sale, mantiene, scende, azzera.
+    output = k_up * (ramp(t1) - ramp(t2)) - k_down * (ramp(t3) - ramp(t4));

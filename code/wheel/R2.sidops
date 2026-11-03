@@ -1,0 +1,11 @@
+// Extracted from vehicle_6dof.emx by tools/extract_20sim_code.py
+// Type:    R
+// Library: Bond Graph\R.emx
+// Used by: WHEEL_BACK_L/R2, WHEEL_BACK_R/R2, WHEEL_FRONT_L/R2, WHEEL_FRONT_R/R2
+// Ports:
+//   power in p
+
+parameters
+	real global damping_suspension_z;
+equations
+	p.e = damping_suspension_z * p.f;

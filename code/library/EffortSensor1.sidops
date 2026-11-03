@@ -1,0 +1,15 @@
+// Extracted from vehicle_6dof.emx by tools/extract_20sim_code.py
+// Type:    EffortSensor
+// Library: Bond Graph\EffortSensor.emx
+// Used by: WHEEL_BACK_L/EffortSensor1, WHEEL_BACK_R/EffortSensor1, WHEEL_FRONT_L/EffortSensor1, WHEEL_FRONT_R/EffortSensor1
+// Ports:
+//   power knot in p1 [1]
+//   power knot out p2 [1]
+//   signal knot out effort [1]
+//   restrictions
+//   causality constraint not_equal p1 p2
+
+equations
+	p2.e = p1.e;
+	p1.f = p2.f;
+	effort = p1.e;

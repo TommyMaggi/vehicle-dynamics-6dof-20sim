@@ -1,0 +1,15 @@
+// Extracted from vehicle_6dof.emx by tools/extract_20sim_code.py
+// Type:    MSe
+// Library: Bond Graph\MSe.emx
+// Used by: ENGINE_TORQUE
+// Ports:
+//   power out p
+//   signal in effort
+//   restrictions
+//   causality fixed out p
+
+variables
+	real flow;
+equations
+	p.e = effort;
+	flow = p.f;

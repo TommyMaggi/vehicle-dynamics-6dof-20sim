@@ -1,0 +1,18 @@
+// Extracted from vehicle_6dof.emx by tools/extract_20sim_code.py
+// Type:    I
+// Library: Bond Graph\I.emx
+// Used by: WHEEL_BACK_L/I, WHEEL_BACK_R/I, WHEEL_FRONT_L/I, WHEEL_FRONT_R/I
+// Ports:
+//   power in p
+//   signal out state
+//   restrictions
+//   causality preferred in p
+
+parameters
+	real global inertia_wheel;  //real rotational inertia value wheel (global)
+equations
+    state = int(p.e);   //state = angular momentum = integral(effort)  //
+    p.f = state / inertia_wheel;    //output flow (prende valore di momento angolare e lo divide per l'inerzia)
+
+//questa è l'inerzia che rappresenta la massa della ruota
+//l'inerzia prende la coppia netta (input), la integra e decide a che velocità gira la ruota

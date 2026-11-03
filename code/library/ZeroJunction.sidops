@@ -1,0 +1,14 @@
+// Extracted from vehicle_6dof.emx by tools/extract_20sim_code.py
+// Type:    ZeroJunction
+// Library: Bond Graph\ZeroJunction.emx
+// Used by: WHEEL_BACK_L/ZeroJunction, WHEEL_BACK_L/ZeroJunction1, WHEEL_BACK_L/ZeroJunction2, WHEEL_BACK_L/ZeroJunction3, WHEEL_BACK_L/ZeroJunction5, WHEEL_BACK_R/ZeroJunction, WHEEL_BACK_R/ZeroJunction1, WHEEL_BACK_R/ZeroJunction2, WHEEL_BACK_R/ZeroJunction3, WHEEL_BACK_R/ZeroJunction5, WHEEL_FRONT_L/ZeroJunction, WHEEL_FRONT_L/ZeroJunction1, WHEEL_FRONT_L/ZeroJunction2, WHEEL_FRONT_L/ZeroJunction3, WHEEL_FRONT_L/ZeroJunction5, WHEEL_FRONT_R/ZeroJunction, WHEEL_FRONT_R/ZeroJunction1, WHEEL_FRONT_R/ZeroJunction2, WHEEL_FRONT_R/ZeroJunction3, WHEEL_FRONT_R/ZeroJunction5, ZeroJunction
+// Ports:
+//   power knot duplicatable none p [1]
+//   signal knot out effort [1]
+//   restrictions
+//   causality constraint one_in p
+
+equations
+	sum (direct (p.f)) = 0;
+	equal (collect (p.e));
+	effort = first (p.e);

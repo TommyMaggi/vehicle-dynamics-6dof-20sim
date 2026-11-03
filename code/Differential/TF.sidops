@@ -1,0 +1,28 @@
+// Extracted from vehicle_6dof.emx by tools/extract_20sim_code.py
+// Type:    TF
+// Library: Bond Graph\TF.emx
+// Used by: Differential/TF
+// Ports:
+//   power in p1
+//   power out p2
+//   restrictions
+//   causality constraint not_equal p1 p2
+
+parameters
+    real global differential_ratio; // (es. 3.5, dichiaralo nei globali!)
+
+variables
+    real r_eq; // Rapporto equivalente combinato
+
+equations
+    // Calcolo del rapporto che unisce Final Drive e ripartizione differenziale
+    r_eq = 2.0 / differential_ratio;
+
+    // p1 è la porta collegata al motore (ingresso)
+    // p2 è la porta collegata al giunto 0 (verso le ruote)
+    
+    // La velocità verso le ruote è ridotta
+    p2.f = r_eq * p1.f;
+    
+    // La coppia dal motore è amplificata
+    p1.e = r_eq * p2.e;

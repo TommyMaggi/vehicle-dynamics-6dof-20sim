@@ -1,0 +1,221 @@
+// Extracted from vehicle_6dof.emx by tools/extract_20sim_code.py
+// Type:    Submodel-Equation
+// Library: Template\Submodel-Equation.emx
+// Used by: CAR_BODY
+// Ports:
+//   power in x_car_body_BL
+//   power in y_car_body_BL
+//   power in z_car_body_BL
+//   power in x_car_body_BR
+//   power in y_car_body_BR
+//   power in z_car_body_BR
+//   power in x_car_body_FL
+//   power in y_car_body_FL
+//   power in z_car_body_FL
+//   power in x_car_body_FR
+//   power in y_car_body_FR
+//   power in z_car_body_FR
+//   signal out X_FL_global
+//   signal out X_FR_global
+//   signal out X_BL_global
+//   signal out X_BR_global
+//   signal out X_out
+//   signal out Y_out
+//   signal out psi_out
+//   signal in delta_in
+//   restrictions
+//   causality fixed in x_car_body_BL
+//   causality fixed in y_car_body_BL
+//   causality fixed in z_car_body_BL
+//   causality fixed in x_car_body_BR
+//   causality fixed in y_car_body_BR
+//   causality fixed in z_car_body_BR
+//   causality fixed in x_car_body_FL
+//   causality fixed in y_car_body_FL
+//   causality fixed in z_car_body_FL
+//   causality fixed in x_car_body_FR
+//   causality fixed in y_car_body_FR
+//   causality fixed in z_car_body_FR
+
+parameters
+    real global m, Jx, Jy, Jz, a, b, w, h;
+    
+    // Steering angle (in radians).
+    //real delta = 0;
+
+variables
+	 
+    // GLOBAL FRAME VARIABLES
+    real phi, theta, psi;                 // Angoli di Eulero (Roll, Pitch, Yaw)
+    real phidot, thetadot, psidot;        // Derivate degli angoli di Eulero
+    
+    real delta;
+    real vX, vY, vZ;                      // Velocità nel sistema globale
+    real X_global, Y_global, Z_global;    // Posizione nel sistema globale (Traiettoria)
+    
+    real FX_global, FY_global, FZ_global; // Forze scaricate nel sistema globale
+
+    // Internal state variables (Body frame)
+    real vx, vy, vz;
+    real wx, wy, wz;
+    
+    // Intermediate variables (Accelerations)
+    real ax, ay, az;
+    real alphax, alphay, alphaz;
+
+    // Local forces rotated to Body Frame
+    real Fx_FL_b, Fy_FL_b;
+    real Fx_FR_b, Fy_FR_b;
+    real Fx_BL_b, Fy_BL_b;
+    real Fx_BR_b, Fy_BR_b;
+
+    // Local hub velocities in Body frame before rotation
+    real v_FL_x_b, v_FL_y_b;
+    real v_FR_x_b, v_FR_y_b;
+
+    // Total forces and moments
+    real Fx_tot, Fy_tot, Fz_tot;
+    real Mx_tot, My_tot, Mz_tot;
+
+    real Y_FL_global, Y_FR_global, Y_BL_global, Y_BR_global;
+
+equations
+
+    // UPWARD: From Wheels to CG (Forces and Moments)
+    delta = delta_in;
+
+    // Front wheels - steering delta 2D rotational matrix
+    Fx_FL_b = x_car_body_FL.e * cos(delta) - y_car_body_FL.e * sin(delta);
+    Fy_FL_b = x_car_body_FL.e * sin(delta) + y_car_body_FL.e * cos(delta);
+
+    Fx_FR_b = x_car_body_FR.e * cos(delta) - y_car_body_FR.e * sin(delta);
+    Fy_FR_b = x_car_body_FR.e * sin(delta) + y_car_body_FR.e * cos(delta);
+
+    // Rear wheels are fixed (delta = 0)
+    Fx_BL_b = x_car_body_BL.e;
+    Fy_BL_b = y_car_body_BL.e;
+
+    Fx_BR_b = x_car_body_BR.e;
+    Fy_BR_b = y_car_body_BR.e;
+
+    // Pure sum of forces on axes (Body Frame)
+    Fx_tot = Fx_FL_b + Fx_FR_b + Fx_BL_b + Fx_BR_b;
+    Fy_tot = Fy_FL_b + Fy_FR_b + Fy_BL_b + Fy_BR_b;
+    
+    // Z-axis: Sum of vertical reactions minus gravity
+    Fz_tot = z_car_body_BL.e + z_car_body_BR.e + z_car_body_FL.e + z_car_body_FR.e - m * 9.81;
+    //Fz_tot = 0;
+
+    // Torque calculation at CG
+    // Roll and Pitch use Fx_tot and Fy_tot (Body frame)
+    Mx_tot = w * (z_car_body_BL.e + z_car_body_FL.e - z_car_body_BR.e - z_car_body_FR.e) + h * Fy_tot;
+    My_tot = -a * (z_car_body_FL.e + z_car_body_FR.e) + b * (z_car_body_BL.e + z_car_body_BR.e) + h * Fx_tot;
+    //Mx_tot = 0;
+    //My_tot = 0;
+    
+    // Yaw (Mz) uses individual forces ALREADY rotated to body frame
+    Mz_tot = a * (Fy_FL_b + Fy_FR_b) - b * (Fy_BL_b + Fy_BR_b) - w * (Fx_FL_b - Fx_FR_b + Fx_BL_b - Fx_BR_b);
+
+
+    //CORE: Newton-Euler Equations (At CG)
+    ax = (Fx_tot / m) - wy*vz + wz*vy;
+    ay = (Fy_tot / m) - wz*vx + wx*vz;
+    az = (Fz_tot / m) - wx*vy + wy*vx;
+
+    alphax = (Mx_tot + (Jy - Jz)*wy*wz) / Jx;
+    alphay = (My_tot + (Jz - Jx)*wz*wx) / Jy;
+    alphaz = (Mz_tot + (Jx - Jy)*wx*wy) / Jz;
+
+    vx = int(ax);
+    vy = int(ay);
+    vz = int(az);
+    wx = int(alphax);
+    wy = int(alphay);
+    wz = int(alphaz);
+
+
+    // From CG to Hubs (Kinematic Transformation)
+    
+    //Rear Wheels (Wheel Frame coincides with Body Frame) Like point P from slides
+    x_car_body_BL.f = vx - wy*h - wz*w;
+    y_car_body_BL.f = vy + wx*h - wz*b;
+    //z_car_body_BL.f = vz + wx*w + wy*b;
+
+    x_car_body_BR.f = vx - wy*h + wz*w;
+    y_car_body_BR.f = vy + wx*h - wz*b;
+    //z_car_body_BR.f = vz - wx*w + wy*b;
+
+    // Front Wheels (Transformed to Wheel Frame for Pacejka) Like point P from slides
+    v_FL_x_b = vx - wy*h - wz*w;
+    v_FL_y_b = vy + wx*h + wz*a;
+    
+    // Output to FL wheel (Rotation by steering angle) inverse rotational matrix
+    x_car_body_FL.f = v_FL_x_b * cos(delta) + v_FL_y_b * sin(delta);
+    y_car_body_FL.f = -v_FL_x_b * sin(delta) + v_FL_y_b * cos(delta);
+    //z_car_body_FL.f = vz + wx*w - wy*a; // Z does not rotate with steering
+
+    v_FR_x_b = vx - wy*h + wz*w;
+    v_FR_y_b = vy + wx*h + wz*a;
+    
+    // Output to FR wheel
+    x_car_body_FR.f = v_FR_x_b * cos(delta) + v_FR_y_b * sin(delta);
+    y_car_body_FR.f = -v_FR_x_b * sin(delta) + v_FR_y_b * cos(delta);
+    //z_car_body_FR.f = vz - wx*w - wy*a;
+
+// --- Front Wheels (Sostituiamo vz con vZ globale) ---
+    // Il resto per X e Y rimane uguale per le formule di Pacejka
+    z_car_body_FL.f = vZ + phidot*w - thetadot*a; 
+    z_car_body_FR.f = vZ - phidot*w - thetadot*a;
+
+    // --- Rear Wheels ---
+    z_car_body_BL.f = vZ + phidot*w + thetadot*b;
+    z_car_body_BR.f = vZ - phidot*w + thetadot*b;
+
+
+    // Trasformazione da Body a World (Eulero Z-Y-X)
+
+
+    // Calcolo delle derivate degli angoli di Eulero partendo dalle velocità angolari (wx, wy, wz)
+    phidot = wx + wy * sin(phi) * tan(theta) + wz * cos(phi) * tan(theta);
+    thetadot = wy * cos(phi) - wz * sin(phi);
+    psidot = (wy * sin(phi) + wz * cos(phi)) / cos(theta);
+
+    // Integrazione per ottenere l'orientamento globale del veicolo
+    phi = int(phidot);
+    theta = int(thetadot);
+    psi = int(psidot);
+
+    // Trasformazione delle velocità dal Body Frame al World Frame tramite matrice di rotazione
+    vX = vx*cos(psi)*cos(theta) + vy*(cos(psi)*sin(theta)*sin(phi) - sin(psi)*cos(phi)) + vz*(cos(psi)*sin(theta)*cos(phi) + sin(psi)*sin(phi));
+    vY = vx*sin(psi)*cos(theta) + vy*(sin(psi)*sin(theta)*sin(phi) + cos(psi)*cos(phi)) + vz*(sin(psi)*sin(theta)*cos(phi) - cos(psi)*sin(phi));
+    vZ = -vx*sin(theta) + vy*cos(theta)*sin(phi) + vz*cos(theta)*cos(phi);
+
+    // Integrazione per ottenere la Posizione Globale (Traiettoria X, Y, Z)
+    X_global = int(vX);
+    Y_global = int(vY);
+    Z_global = int(vZ,h);
+
+    // Trasformazione delle forze totali dal Body Frame al World Frame
+    FX_global = Fx_tot*cos(psi)*cos(theta) + Fy_tot*(cos(psi)*sin(theta)*sin(phi) - sin(psi)*cos(phi)) + Fz_tot*(cos(psi)*sin(theta)*cos(phi) + sin(psi)*sin(phi));
+    FY_global = Fx_tot*sin(psi)*cos(theta) + Fy_tot*(sin(psi)*sin(theta)*sin(phi) + cos(psi)*cos(phi)) + Fz_tot*(sin(psi)*sin(theta)*cos(phi) - cos(psi)*sin(phi));
+    FZ_global = -Fx_tot*sin(theta) + Fy_tot*cos(theta)*sin(phi) + Fz_tot*cos(theta)*cos(phi);
+
+    //delta_out = delta;
+
+    // Calcolo posizione globale ruote anteriori
+    X_FL_global = X_global + a * cos(psi) - w * sin(psi);
+    Y_FL_global = Y_global + a * sin(psi) + w * cos(psi);
+
+    X_FR_global = X_global + a * cos(psi) + w * sin(psi);
+    Y_FR_global = Y_global + a * sin(psi) - w * cos(psi);
+
+    // Calcolo posizione globale ruote posteriori
+    X_BL_global = X_global - b * cos(psi) - w * sin(psi);
+    Y_BL_global = Y_global - b * sin(psi) + w * cos(psi);
+
+    X_BR_global = X_global - b * cos(psi) + w * sin(psi);
+    Y_BR_global = Y_global - b * sin(psi) - w * cos(psi);
+
+	 X_out = X_global;
+    Y_out = Y_global;
+    psi_out = psi;

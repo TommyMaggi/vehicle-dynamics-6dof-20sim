@@ -1,0 +1,4 @@
+# 20-sim models are XML with CRLF line endings: keep them as-is
+*.emx  -text
+*.pdf  binary
+*.png  binary

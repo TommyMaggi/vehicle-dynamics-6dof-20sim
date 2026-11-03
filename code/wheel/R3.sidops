@@ -1,0 +1,62 @@
+// Extracted from vehicle_6dof.emx by tools/extract_20sim_code.py
+// Type:    R
+// Library: Bond Graph\R.emx
+// Used by: WHEEL_BACK_L/R3, WHEEL_BACK_R/R3, WHEEL_FRONT_L/R3, WHEEL_FRONT_R/R3
+// Ports:
+//   power in p_x
+//   power in p_y
+//   signal in ut_in
+//   signal in F_z_in
+
+parameters
+    real global mass_wheel;
+    real global epsilon;
+
+    real global pacejka_B_long;
+    real global pacejka_C_long;
+    real global pacejka_D_long;
+    real global pacejka_E_long;
+    
+    real global pacejka_B_lat;
+    real global pacejka_C_lat;
+    real global pacejka_D_lat;
+    real global pacejka_E_lat;
+
+variables
+    real s;              // Scorrimento longitudinale
+    real alpha;          // Angolo di deriva
+    real F_L0;           // Forza longitudinale pura
+    real F_C0;           // Forza laterale pura
+    real g_Lalpha;       // Fattore di perdita combinato
+    real g_Cs;           // Fattore di perdita combinato
+    
+    real F_z_static;     // Carico normale costante [N]
+    real r_omega_t;      // Velocità tangenziale
+
+    real F_z_dynamic;
+
+equations
+    // CARICO NORMALE STATICO --
+    //F_z_static = (mass_wheel + 300.0) * 9.81;
+
+    F_z_dynamic = max(F_z_in, 1.0);
+
+    // CALCOLO VELOCITÀ REALI --
+    r_omega_t = p_x.f + ut_in;    
+
+    // CALCOLO SLIP E DERIVA --
+    s = p_x.f / max(ut_in, max(r_omega_t, epsilon));        
+    alpha = arctan(p_y.f / max(ut_in, epsilon));
+
+    // FORMULE DI PACEJKA PURE --
+    F_L0 = pacejka_D_long * sin(pacejka_C_long * arctan(pacejka_B_long * s - pacejka_E_long * (pacejka_B_long * s - arctan(pacejka_B_long * s))));
+    F_C0 = pacejka_D_lat * sin(pacejka_C_lat * arctan(pacejka_B_lat * alpha - pacejka_E_lat * (pacejka_B_lat * alpha - arctan(pacejka_B_lat * alpha))));
+
+    // FATTORI DI PERDITA COMBINATA --
+    g_Lalpha = cos(pacejka_C_long * arctan(pacejka_B_long * alpha));
+    g_Cs     = cos(pacejka_C_lat  * arctan(pacejka_B_lat  * s));
+
+    // USCITE DI SFORZO VERSO IL TELAIO --
+    // La forza della gomma deve OPPORSI allo scivolamento (reazione vincolare).
+    p_x.e = F_L0 * g_Lalpha * F_z_dynamic;
+    p_y.e = F_C0 * g_Cs     * F_z_dynamic;

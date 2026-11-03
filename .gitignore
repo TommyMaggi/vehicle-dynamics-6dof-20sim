@@ -1,0 +1,12 @@
+# 20-sim backups / generated files
+*.emx.bak
+*.~emx
+*.emx~
+*.csv
+*.log
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
